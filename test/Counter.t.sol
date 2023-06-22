@@ -2,23 +2,31 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/Counter.sol";
+import {console} from "forge-std/console.sol";
 
-contract CounterTest is Test {
-    Counter public counter;
+import {Counter} from "src/Counter.sol";
+import {CounterHarness} from "test/harnesses/CounterHarness.sol";
 
-    function setUp() public {
+import {ForkTest} from "test/base/ForkTest.sol";
+
+contract CounterTest is ForkTest {
+    Counter counter;
+
+    function setUp() public override {
+        forkBlockNumber = 17533982;
+        super.setUp();
+
+        // use mainnet address for contract you want to debug
         counter = new Counter();
-        counter.setNumber(0);
+
+        vm.etch(address(counter), readBytecodeAt(address(new CounterHarness())));
     }
 
-    function testIncrement() public {
+    function testCounter() public {
+        // This wil log number after incremented to console
         counter.increment();
-        assertEq(counter.number(), 1);
-    }
-
-    function testSetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
+        counter.increment();
+        counter.increment();
+        counter.increment();
     }
 }
